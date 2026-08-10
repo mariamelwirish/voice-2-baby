@@ -4,10 +4,11 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authenticate = require('../middleware/auth');
-const {getPresignedUrl} = require('../utils/s3');
+const {getPresignedUrl, deleteAudio} = require('../utils/s3');
 const {v4: uuidv4} = require('uuid');
 const requireRole = require('../middleware/requireRole');
 const { generateSequentialId } = require('../utils/ids');
+const { getRecordingsBy, deleteRecordingsCascade } = require('../utils/recordingCascade');
 
 // HELPERS
 // Validate Room.
@@ -584,6 +585,124 @@ router.patch('/:id/reassign-room', authenticate, requireRole('admin', 'nurse'), 
     } catch (err) {
         console.error('PATCH /babies/:id/reassign-room error:', err);
         return res.status(500).json({ error: 'Internal Server Error!' });
+    }
+});
+
+// DELETE /api/v1/babies/:id
+// Admin only: permanently erase a baby and EVERYTHING tied to it. This is the
+// hard delete — distinct from PATCH /:id/discharge (the reversible soft path).
+//
+// Cascade removes, atomically:
+//   - the baby's recordings + their playback/history/schedule rows (+ S3 audio)
+//   - a linked parent account ONLY when this is that parent's last/only baby —
+//     then all of THAT parent's data goes too (their recordings, links, user
+//     row). A parent still linked to another baby is merely UNLINKED here, and
+//     their account + other data survive.
+//   - the parent_baby links, and any speaker assignment (the speaker survives)
+//
+// Because this can delete parent accounts and recordings, a plain delete is
+// refused with a 409 (carrying the recording + to-be-deleted-parent counts)
+// whenever the baby has any such records. The caller opts in with ?force=true,
+// which the UI surfaces as an explicit "delete anyway" confirmation.
+router.delete('/:id', authenticate, requireRole('admin'), async (req, res) => {
+    const { id } = req.params;
+    const force = req.query.force === 'true';
+
+    const connection = await pool.getConnection();
+    try {
+        const [babies] = await connection.query(
+            'SELECT id, first_name, last_name FROM babies WHERE id = ?',
+            [id]
+        );
+        if (babies.length === 0) {
+            connection.release();
+            return res.status(404).json({ error: 'Baby not found!' });
+        }
+        const baby = babies[0];
+
+        // The baby's own recordings.
+        const babyRecordings = await getRecordingsBy(connection, 'baby_id', id);
+
+        // The parents linked to this baby. Split them: those linked ONLY to this
+        // baby are deleted with it; those also linked elsewhere are just unlinked.
+        const [linkedParents] = await connection.query(
+            `SELECT u.id, u.first_name, u.last_name
+             FROM parent_baby pb JOIN users u ON u.id = pb.parent_id
+             WHERE pb.baby_id = ? AND u.role = 'parent'`,
+            [id]
+        );
+
+        const parentsToDelete = [];
+        const parentsToUnlink = [];
+        for (const p of linkedParents) {
+            const [[{ others }]] = await connection.query(
+                'SELECT COUNT(*) AS others FROM parent_baby WHERE parent_id = ? AND baby_id != ?',
+                [p.id, id]
+            );
+            (Number(others) === 0 ? parentsToDelete : parentsToUnlink).push(p);
+        }
+
+        // Guard: recordings, or a parent that would be deleted → require force.
+        if ((babyRecordings.length > 0 || parentsToDelete.length > 0) && !force) {
+            connection.release();
+            return res.status(409).json({
+                error: `Deleting ${baby.first_name} ${baby.last_name} will permanently remove ${babyRecordings.length} recording(s)${parentsToDelete.length ? ` and ${parentsToDelete.length} parent account(s) linked only to this baby` : ''}${parentsToUnlink.length ? ` (and unlink ${parentsToUnlink.length} parent(s) who have other babies)` : ''}. This cannot be undone.`,
+                recordings: babyRecordings.length,
+                parents: parentsToDelete.length,
+                unlinked_parents: parentsToUnlink.length,
+                requires_force: babyRecordings.length + parentsToDelete.length,
+            });
+        }
+
+        // Recordings to erase: the baby's, plus every recording belonging to a
+        // parent we're deleting (a to-delete parent has no other baby, but may
+        // still hold recordings from a previously-unlinked baby — those FK-block
+        // the user delete unless cleared, so gather them defensively).
+        const s3Keys = [...babyRecordings.map(r => r.s3_key)];
+        const recordingIds = [...babyRecordings.map(r => r.id)];
+        for (const p of parentsToDelete) {
+            const parentRecordings = await getRecordingsBy(connection, 'parent_id', p.id);
+            for (const r of parentRecordings) {
+                if (!recordingIds.includes(r.id)) { recordingIds.push(r.id); s3Keys.push(r.s3_key); }
+            }
+        }
+
+        await connection.beginTransaction();
+        // 1. Wipe all the recordings and their child rows.
+        await deleteRecordingsCascade(connection, recordingIds);
+        // 2. Unlink the parents who keep their account (only from THIS baby).
+        for (const p of parentsToUnlink) {
+            await connection.query('DELETE FROM parent_baby WHERE parent_id = ? AND baby_id = ?', [p.id, id]);
+        }
+        // 3. Delete the parents linked only to this baby: their links, then user.
+        for (const p of parentsToDelete) {
+            await connection.query('DELETE FROM parent_baby WHERE parent_id = ?', [p.id]);
+            await connection.query("DELETE FROM users WHERE id = ? AND role = 'parent'", [p.id]);
+        }
+        // 4. Any remaining links to this baby, unassign its speaker, delete the baby.
+        await connection.query('DELETE FROM parent_baby WHERE baby_id = ?', [id]);
+        await connection.query('UPDATE devices SET baby_id = NULL WHERE baby_id = ?', [id]);
+        await connection.query('DELETE FROM babies WHERE id = ?', [id]);
+        await connection.commit();
+        connection.release();
+
+        // Best-effort S3 cleanup, only after the DB rows are gone.
+        for (const key of s3Keys) await deleteAudio(key);
+
+        const parts = [];
+        if (parentsToDelete.length) parts.push(`${parentsToDelete.length} parent account(s)`);
+        if (recordingIds.length) parts.push(`${recordingIds.length} recording(s)`);
+        let message = `${baby.first_name} ${baby.last_name} was permanently deleted${parts.length ? `, along with ${parts.join(' and ')}` : ''}.`;
+        if (parentsToUnlink.length) message += ` ${parentsToUnlink.length} parent(s) linked to other babies were kept and unlinked.`;
+        return res.status(200).json({ message });
+    } catch (err) {
+        try { await connection.rollback(); } catch (_) {}
+        connection.release();
+        if (err.errno === 1451 || err.code === 'ER_ROW_IS_REFERENCED_2') {
+            return res.status(409).json({ error: 'This baby is still referenced by other records and can’t be fully deleted.' });
+        }
+        console.error('DELETE /babies/:id error:', err);
+        return res.status(500).json({ error: 'Failed to delete baby.' });
     }
 });
 

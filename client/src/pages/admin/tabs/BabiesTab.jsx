@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Pencil, ArrowRightLeft, LogOut, RotateCcw, Baby as BabyIcon, AudioLines } from 'lucide-react';
+import { Search, Plus, Pencil, ArrowRightLeft, LogOut, RotateCcw, Baby as BabyIcon, AudioLines, Trash2 } from 'lucide-react';
 import api from '../../../api/client';
 import { Modal } from '../../../components/ui/Modal';
+import { ConfirmDeleteModal } from '../../../components/ui/ConfirmDeleteModal';
 import { theme } from '../../../theme';
 import { Button, Badge, Field, Select, Spinner, EmptyState, PageHeader } from '../../../components/ui';
 
@@ -277,6 +278,7 @@ export default function BabiesTab() {
                         ) : (
                           <Button size="sm" variant="ghost" icon={<RotateCcw size={13} />} style={{ color: c.success, borderColor: c.successSoft }} onClick={() => setModal({ type: 'readmit', baby })}>Readmit</Button>
                         )}
+                        <Button size="sm" variant="ghost" icon={<Trash2 size={13} />} style={{ color: c.danger, borderColor: c.dangerSoft }} onClick={() => setModal({ type: 'delete', baby })}>Delete</Button>
                       </div>
                     </td>
                   </tr>
@@ -314,6 +316,23 @@ export default function BabiesTab() {
       )}
       {modal?.type === 'reassign' && (
         <RoomPickerModal title={`Move ${modal.baby.first_name} ${modal.baby.last_name} to a new room`} onSubmit={handleReassign} onClose={closeModal} loading={saving} error={formError} />
+      )}
+      {modal?.type === 'delete' && (
+        <ConfirmDeleteModal
+          title="Delete baby"
+          body={<>Permanently delete <strong>{modal.baby.first_name} {modal.baby.last_name}</strong> ({modal.baby.record_number})? This removes every recording tied to this baby. A parent linked only to this baby is deleted too; a parent who also has another baby is kept and just unlinked. This cannot be undone.</>}
+          onDelete={(force) => api.delete(`/babies/${modal.baby.id}${force ? '?force=true' : ''}`)}
+          escalateKey="requires_force"
+          escalateTitle="Delete the baby and its data?"
+          escalateBody={(_n, data) => (
+            <>Deleting <strong>{modal.baby.first_name} {modal.baby.last_name}</strong> will <strong>permanently erase</strong> <strong>{data?.recordings ?? 0}</strong> recording(s)
+              {data?.parents ? <> and <strong>{data.parents}</strong> parent account(s) linked only to this baby</> : null}
+              {data?.unlinked_parents ? <>. {data.unlinked_parents} parent(s) with other babies will be kept and unlinked</> : null}. This cannot be undone.</>
+          )}
+          escalateLabel={(_n, data) => `Delete baby${data?.recordings ? ` + ${data.recordings} recording(s)` : ''}${data?.parents ? ` + ${data.parents} parent(s)` : ''}`}
+          onClose={closeModal}
+          onDone={fetchBabies}
+        />
       )}
     </div>
   );

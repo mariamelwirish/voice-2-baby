@@ -8,6 +8,8 @@ const requireRole = require('../middleware/requireRole');
 const { v4: uuidv4 } = require('uuid');
 const { notifyInvite } = require('../utils/ses');
 const { generateSequentialId } = require('../utils/ids');
+const { deleteAudio } = require('../utils/s3');
+const { getRecordingsBy, deleteRecordingsCascade } = require('../utils/recordingCascade');
 
 // Simple email sanity check — not exhaustive, just catches obvious junk.
 const isValidEmail = (email) =>
@@ -419,6 +421,173 @@ router.get('/parents', authenticate, requireRole('admin'), async (req, res) => {
     } catch (err) {
         console.error('GET /admin/parents error:', err);
         return res.status(500).json({ error: 'Failed to load parents.' });
+    }
+});
+
+// DELETE /api/v1/admin/parents/:id/babies/:babyId
+// Admin only: unlink a baby from a parent (e.g. a baby was linked by mistake).
+// Hard rule: a parent must always keep at least one baby — the LAST link can
+// never be removed here. To fully remove a parent, use DELETE /parents/:id.
+// The baby and any recordings stay intact; only the parent_baby link is removed.
+router.delete('/parents/:id/babies/:babyId', authenticate, requireRole('admin'), async (req, res) => {
+    const { id, babyId } = req.params;
+
+    try {
+        // Confirm the parent exists.
+        const [parents] = await pool.query(
+            "SELECT id FROM users WHERE id = ? AND role = 'parent'",
+            [id]
+        );
+        if (parents.length === 0) {
+            return res.status(404).json({ error: 'Parent not found.' });
+        }
+
+        // Confirm the link exists.
+        const [links] = await pool.query(
+            'SELECT id FROM parent_baby WHERE parent_id = ? AND baby_id = ?',
+            [id, babyId]
+        );
+        if (links.length === 0) {
+            return res.status(404).json({ error: 'This parent is not linked to that baby.' });
+        }
+
+        // Guard: never leave a parent with zero babies.
+        const [[{ total }]] = await pool.query(
+            'SELECT COUNT(*) AS total FROM parent_baby WHERE parent_id = ?',
+            [id]
+        );
+        if (Number(total) <= 1) {
+            return res.status(409).json({
+                error: 'A parent must stay linked to at least one baby. Link another baby first, or delete the parent entirely.',
+                remaining: Number(total),
+            });
+        }
+
+        await pool.query(
+            'DELETE FROM parent_baby WHERE parent_id = ? AND baby_id = ?',
+            [id, babyId]
+        );
+        return res.status(200).json({ message: 'Baby unlinked from parent.' });
+    } catch (err) {
+        console.error('DELETE /admin/parents/:id/babies/:babyId error:', err);
+        return res.status(500).json({ error: 'Failed to unlink baby from parent.' });
+    }
+});
+
+// DELETE /api/v1/admin/nurses/:id
+// Admin only: permanently delete a nurse account. A nurse who has reviewed,
+// scheduled, or played messages has audit rows (recording_status_history) and
+// schedules tied to recordings that still exist — deleting the nurse erases
+// that trail. So a plain delete is refused with a 409 + count; the caller must
+// opt in with ?force=true (surfaced as an explicit "delete anyway" step).
+router.delete('/nurses/:id', authenticate, requireRole('admin'), async (req, res) => {
+    const { id } = req.params;
+    const force = req.query.force === 'true';
+
+    const connection = await pool.getConnection();
+    try {
+        const [nurses] = await connection.query(
+            "SELECT id, first_name, last_name FROM users WHERE id = ? AND role = 'nurse'",
+            [id]
+        );
+        if (nurses.length === 0) {
+            connection.release();
+            return res.status(404).json({ error: 'Nurse not found.' });
+        }
+        const nurse = nurses[0];
+
+        // Count the audit trail this nurse is responsible for.
+        const [[{ historyCount }]] = await connection.query(
+            'SELECT COUNT(*) AS historyCount FROM recording_status_history WHERE changed_by = ?', [id]
+        );
+        const [[{ scheduleCount }]] = await connection.query(
+            'SELECT COUNT(*) AS scheduleCount FROM schedules WHERE scheduled_by = ?', [id]
+        );
+        const activity = Number(historyCount) + Number(scheduleCount);
+
+        if (activity > 0 && !force) {
+            connection.release();
+            return res.status(409).json({
+                error: `${nurse.first_name} ${nurse.last_name} has ${activity} recorded action(s) in the system’s history. Deleting this nurse permanently erases that activity log. This cannot be undone.`,
+                activity_records: activity,
+            });
+        }
+
+        await connection.beginTransaction();
+        // Clear the nurse's audit/scheduling rows (only reachable under force).
+        await connection.query('DELETE FROM recording_status_history WHERE changed_by = ?', [id]);
+        await connection.query('DELETE FROM schedules WHERE scheduled_by = ?', [id]);
+        await connection.query("DELETE FROM users WHERE id = ? AND role = 'nurse'", [id]);
+        await connection.commit();
+        connection.release();
+
+        return res.status(200).json({
+            message: `${nurse.first_name} ${nurse.last_name} was permanently deleted${activity ? `, along with ${activity} history record(s).` : '.'}`
+        });
+    } catch (err) {
+        try { await connection.rollback(); } catch (_) {}
+        connection.release();
+        if (err.errno === 1451 || err.code === 'ER_ROW_IS_REFERENCED_2') {
+            return res.status(409).json({ error: 'This nurse is still referenced by other records and can’t be fully deleted.' });
+        }
+        console.error('DELETE /admin/nurses/:id error:', err);
+        return res.status(500).json({ error: 'Failed to delete nurse.' });
+    }
+});
+
+// DELETE /api/v1/admin/parents/:id
+// Admin only: permanently delete a parent account. Their baby links are always
+// cleaned automatically. Their recordings (and each recording's playback /
+// history / schedule rows) are clinical history — a plain delete is refused
+// with a 409 + count, and the caller must opt in with ?force=true.
+router.delete('/parents/:id', authenticate, requireRole('admin'), async (req, res) => {
+    const { id } = req.params;
+    const force = req.query.force === 'true';
+
+    const connection = await pool.getConnection();
+    try {
+        const [parents] = await connection.query(
+            "SELECT id, first_name, last_name FROM users WHERE id = ? AND role = 'parent'",
+            [id]
+        );
+        if (parents.length === 0) {
+            connection.release();
+            return res.status(404).json({ error: 'Parent not found.' });
+        }
+        const parent = parents[0];
+
+        const recordings = await getRecordingsBy(connection, 'parent_id', id);
+        if (recordings.length > 0 && !force) {
+            connection.release();
+            return res.status(409).json({
+                error: `${parent.first_name} ${parent.last_name} has sent ${recordings.length} recording(s). Deleting this parent permanently erases those messages and their history. This cannot be undone.`,
+                recordings: recordings.length,
+            });
+        }
+
+        const s3Keys = recordings.map(r => r.s3_key);
+        const recordingIds = recordings.map(r => r.id);
+
+        await connection.beginTransaction();
+        await deleteRecordingsCascade(connection, recordingIds);
+        await connection.query('DELETE FROM parent_baby WHERE parent_id = ?', [id]);
+        await connection.query("DELETE FROM users WHERE id = ? AND role = 'parent'", [id]);
+        await connection.commit();
+        connection.release();
+
+        for (const key of s3Keys) await deleteAudio(key);
+
+        return res.status(200).json({
+            message: `${parent.first_name} ${parent.last_name} was permanently deleted${recordingIds.length ? `, along with ${recordingIds.length} recording(s).` : '.'}`
+        });
+    } catch (err) {
+        try { await connection.rollback(); } catch (_) {}
+        connection.release();
+        if (err.errno === 1451 || err.code === 'ER_ROW_IS_REFERENCED_2') {
+            return res.status(409).json({ error: 'This parent is still referenced by other records and can’t be fully deleted.' });
+        }
+        console.error('DELETE /admin/parents/:id error:', err);
+        return res.status(500).json({ error: 'Failed to delete parent.' });
     }
 });
 

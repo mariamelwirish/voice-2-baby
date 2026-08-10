@@ -1,0 +1,37 @@
+{
+  "Parameters": {
+    "SerialNumber": {
+      "Type": "String"
+    },
+    "DeviceCode": {
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "thing": {
+      "Type": "AWS::IoT::Thing",
+      "Properties": {
+        "ThingName": { "Ref": "DeviceCode" },
+        "AttributePayload": {
+          "serialNumber": { "Ref": "SerialNumber" }
+        }
+      },
+      "OverrideSettings": {
+        "AttributePayload": "MERGE"
+      }
+    },
+    "certificate": {
+      "Type": "AWS::IoT::Certificate",
+      "Properties": {
+        "CertificateId": { "Ref": "AWS::IoT::Certificate::Id" },
+        "Status": "ACTIVE"
+      }
+    },
+    "policy": {
+      "Type": "AWS::IoT::Policy",
+      "Properties": {
+        "PolicyName": "nicu-fleet-device-policy"
+      }
+    }
+  }
+}

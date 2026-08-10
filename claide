@@ -1,0 +1,406 @@
+e Jul 28 2026 15:29:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T12:30:31.480Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:30:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T12:38:56.267Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:31:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T12:38:56.268Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:32:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T12:38:56.268Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:33:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T12:38:56.268Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:34:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T12:38:56.268Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:35:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T12:38:56.268Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:36:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T12:38:56.268Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:37:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T12:38:56.268Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:38:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.702Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:40:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:41:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:42:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:43:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:44:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:45:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:46:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:47:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:48:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:49:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:50:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:51:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:52:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:53:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:54:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:55:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:56:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:57:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.703Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:58:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.704Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 15:59:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.704Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 16:00:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.704Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 16:01:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.704Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 16:02:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.704Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 16:03:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.704Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 16:04:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.704Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 16:05:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2026-07-28T13:06:16.704Z] [PID: 2340] [NODE-CRON] [WARN] missed execution at Tue Jul 28 2026 16:06:00 GMT+0300 (Eastern European Summer Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+node:internal/process/promises:391
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+Error: connect ECONNREFUSED 127.0.0.1:3306
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16) {
+  errno: -61,
+  code: 'ECONNREFUSED',
+  syscall: 'connect',
+  address: '127.0.0.1',
+  port: 3306,
+  fatal: true
+}
+
+Node.js v20.20.2
+[nodemon] app crashed - waiting for file changes before starting...
+
+ *  History restored 
+
+(base) mariamelwirish@Wrshs-Macbook server % npm run dev
+
+> server@1.0.0 dev
+> nodemon index.js
+
+[nodemon] 3.1.14
+[nodemon] to restart at any time, enter `rs`
+[nodemon] watching path(s): *.*
+[nodemon] watching extensions: js,mjs,cjs,json
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+(node:96400) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+iotSubscriber: device PI-00002 is online.
+iotSubscriber: device PI-00002 went offline (detected via Last Will and Testament).
+iotSubscriber: disconnected from AWS IoT Core. {
+  error: CrtError: aws-c-io: AWS_IO_SOCKET_CLOSED, socket is closed.
+      at /Users/mariamelwirish/Education/Projects/Remote Reading/Code/server/node_modules/aws-crt/dist/native/mqtt5.js:139:488 {
+    error: 1051,
+    error_code: 1051,
+    error_name: 'AWS_IO_SOCKET_CLOSED'
+  }
+}
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+(node:6046) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+(node:6155) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+(node:6289) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+(node:6375) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+(node:6568) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+(node:6669) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+(node:6749) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+(node:6920) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+(node:12724) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+(node:14896) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+RAW TOKEN (dev only): 00db306261f6920ec719ae8890b53bae9339e6c087c1aba4102e2bf55543e272
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+(node:17536) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+(node:24183) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+(node:24353) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+(node:25480) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+(node:25574) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+(node:25645) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status
+[nodemon] restarting due to changes...
+[nodemon] starting `node index.js`
+◇ injected env (15) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+(node:25762) Warning: NodeVersionSupportWarning: The AWS SDK for JavaScript (v3)
+versions published after the first week of January 2027
+will require node >=22. You are running node v20.20.2.
+
+To continue receiving updates to AWS services, bug fixes,
+and security updates please upgrade to node >=22.
+
+More information can be found at: https://a.co/c895JFp
+(Use `node --trace-warnings ...` to show where the warning was created)
+Database connected successfully
+[migrate] Applying 001_add_device_serial.sql ...
+[migrate] ✓ 001_add_device_serial.sql
+[migrate] Done. 1 applied, 0 already up to date.
+Scheduler started — checking for due recordings every minute.
+Server running on port 3000
+iotSubscriber: connected to AWS IoT Core.
+iotSubscriber: subscribed to devices/+/status

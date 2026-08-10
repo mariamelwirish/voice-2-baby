@@ -1,0 +1,5 @@
+# Raspberry Pi speaker dependencies.
+# Install on the Pi with:  python3 -m pip install -r requirements.txt --break-system-packages
+awsiotsdk        # fleet provisioning (provision_agent.py) + AWS IoT MQTT
+paho-mqtt        # subscriber's MQTT client (pi_subscriber.py)
+requests         # download the presigned audio URL

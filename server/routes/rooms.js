@@ -349,4 +349,38 @@ router.patch('/:id/reactivate', authenticate, requireRole('admin', 'nurse'), asy
     }
 });
 
+// DELETE /api/v1/rooms/:id
+// Admin only: permanently delete a room (hard delete, distinct from the
+// reversible PATCH /:id/deactivate). Blocked while ANY baby — active or
+// discharged — still references the room, since babies.room_id is a required
+// foreign key. The admin must move or delete those babies first.
+router.delete('/:id', authenticate, requireRole('admin'), async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [rooms] = await pool.query('SELECT id, room_number FROM rooms WHERE id = ?', [id]);
+        if (rooms.length === 0) {
+            return res.status(404).json({ error: 'Room not found!' });
+        }
+        const room = rooms[0];
+
+        const [[{ n }]] = await pool.query('SELECT COUNT(*) AS n FROM babies WHERE room_id = ?', [id]);
+        if (n > 0) {
+            return res.status(409).json({
+                error: `Room ${room.room_number} still has ${n} baby record(s) linked to it. Move or delete those babies first, then delete the room.`,
+                babies: n,
+            });
+        }
+
+        await pool.query('DELETE FROM rooms WHERE id = ?', [id]);
+        return res.status(200).json({ message: `Room ${room.room_number} was permanently deleted.` });
+    } catch (err) {
+        if (err.errno === 1451 || err.code === 'ER_ROW_IS_REFERENCED_2') {
+            return res.status(409).json({ error: 'This room is still referenced by other records and can’t be deleted.' });
+        }
+        console.error('DELETE /rooms/:id error:', err);
+        return res.status(500).json({ error: 'Failed to delete room.' });
+    }
+});
+
 module.exports = router;

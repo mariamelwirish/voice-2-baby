@@ -1,7 +1,7 @@
 // s3.js
 
 // Import the client and necessary commands & functions from the AWS SDK
-const {S3Client, PutObjectCommand, GetObjectCommand} = require('@aws-sdk/client-s3');
+const {S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand} = require('@aws-sdk/client-s3');
 const {getSignedUrl} = require('@aws-sdk/s3-request-presigner');
 
 // For generating unique keys for S3 objects
@@ -45,4 +45,19 @@ const getPresignedUrl = async(key, expiresIn = 3600) => {
     return url;
 }
 
-module.exports = {uploadAudio, getPresignedUrl};
+// Best-effort delete of an S3 object. Called after the DB rows are already
+// gone (permanent record deletes), so a failure here must never throw — a
+// stray audio object is harmless clutter, not a data-integrity problem.
+const deleteAudio = async (key) => {
+    if (!key) return;
+    try {
+        await s3Client.send(new DeleteObjectCommand({
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: key
+        }));
+    } catch (err) {
+        console.error(`Failed to delete S3 object ${key}:`, err);
+    }
+}
+
+module.exports = {uploadAudio, getPresignedUrl, deleteAudio};

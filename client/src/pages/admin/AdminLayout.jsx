@@ -1,12 +1,12 @@
 import { NavLink, Routes, Route, Navigate } from 'react-router-dom';
-import { Baby, DoorOpen, Users, Radio } from 'lucide-react';
+import { Baby, DoorOpen, Users, Radio, Stethoscope } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { theme } from '../../theme';
 import { AppTopBar } from '../../components/layout/AppTopBar';
 import { CoBrandingFooter } from '../../components/layout/CoBranding';
 import BabiesTab from './tabs/BabiesTab';
 import RoomsTab from './tabs/RoomsTab';
-import UsersTab from './tabs/UsersTab';
+import { NursesTab, ParentsTab } from './tabs/UsersTab';
 import DevicesTab from './tabs/DevicesTab';
 import AdminBabyRecordings from './AdminBabyRecordings';
 
@@ -14,7 +14,8 @@ const TABS = [
   { to: '/admin/babies',  label: 'Babies',   icon: Baby },
   { to: '/admin/rooms',   label: 'Rooms',    icon: DoorOpen },
   { to: '/admin/devices', label: 'Speakers', icon: Radio },
-  { to: '/admin/users',   label: 'People',   icon: Users },
+  { to: '/admin/nurses',  label: 'Nurses',   icon: Stethoscope },
+  { to: '/admin/parents', label: 'Parents',  icon: Users },
 ];
 
 function TabLink({ to, label, icon: Icon }) {
@@ -59,7 +60,9 @@ export default function AdminLayout() {
           <Route path="babies/:babyId/recordings" element={<AdminBabyRecordings />} />
           <Route path="rooms"   element={<RoomsTab />} />
           <Route path="devices" element={<DevicesTab />} />
-          <Route path="users"   element={<UsersTab />} />
+          <Route path="nurses"  element={<NursesTab />} />
+          <Route path="parents" element={<ParentsTab />} />
+          <Route path="users"   element={<Navigate to="/admin/nurses" replace />} />
         </Routes>
       </div>
       <CoBrandingFooter />

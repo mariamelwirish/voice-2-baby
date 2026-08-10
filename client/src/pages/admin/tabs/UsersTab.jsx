@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   UserPlus, Mail, CheckCircle2, AlertTriangle, Activity, Baby as BabyIcon,
-  Users as UsersIcon, Stethoscope, Clock,
+  Users as UsersIcon, Stethoscope, Clock, Trash2, Pencil, Unlink, Plus,
 } from 'lucide-react';
 import api from '../../../api/client';
 import { theme } from '../../../theme';
 import { Modal } from '../../../components/ui/Modal';
+import { ConfirmDeleteModal } from '../../../components/ui/ConfirmDeleteModal';
 import { Button, Badge, Field, Select, Spinner, EmptyState, PageHeader } from '../../../components/ui';
 
 const c = theme.color;
@@ -166,6 +167,129 @@ function ResendInviteModal({ email, onClose }) {
   );
 }
 
+// Edit a parent's baby links. The one firm rule: a parent must always keep at
+// least one baby, so the last remaining link cannot be unlinked (the backend
+// enforces this too). Use this to fix a baby linked by mistake.
+function EditParentModal({ parent, onClose, onDone }) {
+  const [babies, setBabies] = useState(parent.babies ?? []);
+  const [busyId, setBusyId] = useState(null);
+  const [error, setError] = useState('');
+  const isLast = babies.length <= 1;
+
+  // Link-another-baby state
+  const [allBabies, setAllBabies] = useState([]);
+  const [linkBabyId, setLinkBabyId] = useState('');
+  const [linkRel, setLinkRel] = useState('primary');
+  const [linking, setLinking] = useState(false);
+  const [linkError, setLinkError] = useState('');
+
+  useEffect(() => {
+    api.get('/babies', { params: { status: 'active' } }).then(({ data }) => setAllBabies(data)).catch(() => {});
+  }, []);
+
+  // Active babies this parent isn't linked to yet.
+  const linkedIds = new Set(babies.map(b => b.baby_id));
+  const availableBabies = allBabies.filter(b => !linkedIds.has(b.id));
+
+  async function unlink(babyId) {
+    if (isLast) return;
+    setBusyId(babyId); setError('');
+    try {
+      await api.delete(`/admin/parents/${parent.id}/babies/${babyId}`);
+      setBabies(prev => prev.filter(b => b.baby_id !== babyId));
+      onDone?.();
+    } catch (err) {
+      setError(err.response?.data?.error ?? 'Could not unlink this baby.');
+    } finally { setBusyId(null); }
+  }
+
+  async function link(e) {
+    e.preventDefault();
+    if (!linkBabyId) { setLinkError('Choose a baby to link.'); return; }
+    setLinking(true); setLinkError('');
+    try {
+      // Reuse the existing "link an existing parent to a baby" path (by email).
+      await api.post('/admin/parents', { email: parent.email, baby_id: linkBabyId, relationship: linkRel });
+      const baby = allBabies.find(b => b.id === linkBabyId);
+      if (baby) {
+        setBabies(prev => [...prev, {
+          baby_id: baby.id, record_number: baby.record_number,
+          first_name: baby.first_name, last_name: baby.last_name,
+          relationship: linkRel, status: baby.status,
+        }]);
+      }
+      setLinkBabyId(''); setLinkRel('primary');
+      onDone?.();
+    } catch (err) {
+      setLinkError(err.response?.data?.error ?? 'Could not link this baby.');
+    } finally { setLinking(false); }
+  }
+
+  return (
+    <Modal title={`Edit ${parent.first_name} ${parent.last_name}`} onClose={onClose} maxWidth={520}>
+      <p style={{ margin: '0 0 14px', fontSize: 13, color: c.textMuted }}>
+        {parent.hospital_id} · {parent.email}
+      </p>
+      <p style={{ margin: '0 0 14px', fontSize: 13, color: c.textMuted }}>
+        Linked babies. Unlink one that was added by mistake — a parent must stay linked to at least one baby, so the last one can’t be removed.
+      </p>
+      {error && <p style={{ color: c.danger, background: c.dangerSoft, padding: '8px 12px', borderRadius: theme.radius.sm, fontSize: 13 }}>{error}</p>}
+      {babies.length === 0 ? (
+        <EmptyState icon={<BabyIcon size={30} color={c.textFaint} />} title="No linked babies" />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {babies.map(b => (
+            <div key={b.baby_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, border: `1px solid ${c.border}`, borderRadius: theme.radius.md, padding: '10px 12px' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, minWidth: 0 }}>
+                <BabyIcon size={15} color={c.accent} />
+                <strong style={{ color: c.text }}>{b.first_name} {b.last_name}</strong>
+                <span style={{ color: c.textMuted }}>{b.record_number}</span>
+                <Badge tone={b.relationship === 'primary' ? 'accent' : 'neutral'}>{b.relationship}</Badge>
+              </span>
+              <Button
+                size="sm" variant="ghost" icon={<Unlink size={13} />}
+                style={{ color: isLast ? c.textFaint : c.danger, borderColor: isLast ? c.border : c.dangerSoft }}
+                disabled={isLast || busyId === b.baby_id}
+                title={isLast ? 'A parent must stay linked to at least one baby.' : undefined}
+                onClick={() => unlink(b.baby_id)}
+              >
+                {busyId === b.baby_id ? 'Unlinking…' : 'Unlink'}
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+      {isLast && babies.length === 1 && (
+        <p style={{ margin: '12px 0 0', fontSize: 12, color: c.textMuted }}>
+          This is the parent’s only baby. Link another baby first if you need to remove this one.
+        </p>
+      )}
+
+      {/* Link another baby */}
+      <form onSubmit={link} style={{ marginTop: 20, paddingTop: 18, borderTop: `1px solid ${c.border}` }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: c.text, marginBottom: 10 }}>Link another baby</div>
+        <Select
+          label="Baby" searchable value={linkBabyId} onChange={setLinkBabyId}
+          placeholder="Select a baby…" searchPlaceholder="Search by ID or name…" emptyText="No other active babies"
+          options={availableBabies.map(b => ({ value: b.id, label: `${b.first_name} ${b.last_name}`, sublabel: `${b.record_number ?? ''}${b.room_number ? ` · Room ${b.room_number}` : ''}`, keywords: `${b.record_number ?? ''} ${b.first_name} ${b.last_name}` }))}
+        />
+        <Select
+          label="Relationship" value={linkRel} onChange={setLinkRel} style={{ marginTop: 12 }}
+          options={[{ value: 'primary', label: 'Primary' }, { value: 'secondary', label: 'Secondary' }]}
+        />
+        {linkError && <p style={{ color: c.danger, fontSize: 13, marginTop: 10 }}>{linkError}</p>}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+          <Button type="submit" disabled={linking || !linkBabyId} icon={<Plus size={16} />}>{linking ? 'Linking…' : 'Link baby'}</Button>
+        </div>
+      </form>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+        <Button type="button" variant="ghost" onClick={onClose}>Done</Button>
+      </div>
+    </Modal>
+  );
+}
+
 // What a nurse's action means, in plain language.
 const ACTION_LABEL = {
   scheduled: 'Scheduled a message',
@@ -233,7 +357,7 @@ function TableWrap({ children }) {
   );
 }
 
-function NursesView() {
+export function NursesTab() {
   const [nurses, setNurses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -247,9 +371,11 @@ function NursesView() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-        <Button icon={<UserPlus size={16} />} onClick={() => setModal({ type: 'add' })}>Add nurse</Button>
-      </div>
+      <PageHeader
+        title="Nurses"
+        subtitle="The care team and what each nurse has done"
+        actions={<Button icon={<UserPlus size={16} />} onClick={() => setModal({ type: 'add' })}>Add nurse</Button>}
+      />
       {error && <p style={{ color: c.danger }}>{error}</p>}
       {loading ? <Spinner /> : nurses.length === 0 ? (
         <EmptyState icon={<Stethoscope size={34} color={c.textFaint} />} title="No nurses yet" hint="Add a nurse to get started." />
@@ -276,7 +402,10 @@ function NursesView() {
                 </td>
                 <td style={{ ...td, color: c.textMuted }}>{n.last_action_at ? fmtDate(n.last_action_at) : '—'}</td>
                 <td style={td}>
-                  <Button size="sm" variant="ghost" icon={<Activity size={13} />} onClick={() => setModal({ type: 'activity', nurse: n })}>Activity</Button>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <Button size="sm" variant="ghost" icon={<Activity size={13} />} onClick={() => setModal({ type: 'activity', nurse: n })}>Activity</Button>
+                    <Button size="sm" variant="ghost" icon={<Trash2 size={13} />} style={{ color: c.danger, borderColor: c.dangerSoft }} onClick={() => setModal({ type: 'delete', nurse: n })}>Delete</Button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -286,11 +415,24 @@ function NursesView() {
 
       {modal?.type === 'add' && <AddNurseModal onClose={() => setModal(null)} onDone={fetchNurses} />}
       {modal?.type === 'activity' && <NurseActivityModal nurse={modal.nurse} onClose={() => setModal(null)} />}
+      {modal?.type === 'delete' && (
+        <ConfirmDeleteModal
+          title="Delete nurse"
+          body={<>Permanently delete <strong>{modal.nurse.first_name} {modal.nurse.last_name}</strong> ({modal.nurse.hospital_id})? This removes their account for good and cannot be undone.</>}
+          onDelete={(force) => api.delete(`/admin/nurses/${modal.nurse.id}${force ? '?force=true' : ''}`)}
+          escalateKey="activity_records"
+          escalateTitle="Delete the nurse and their activity log?"
+          escalateBody={(n) => <><strong>{modal.nurse.first_name} {modal.nurse.last_name}</strong> has <strong>{n}</strong> recorded action(s) in the system’s history. Continuing will <strong>permanently erase that activity log</strong>. This cannot be undone.</>}
+          escalateLabel={(n) => `Delete nurse + ${n} record(s)`}
+          onClose={() => setModal(null)}
+          onDone={fetchNurses}
+        />
+      )}
     </div>
   );
 }
 
-function ParentsView() {
+export function ParentsTab() {
   const [parents, setParents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -304,9 +446,11 @@ function ParentsView() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-        <Button icon={<UserPlus size={16} />} onClick={() => setModal({ type: 'add' })}>Add parent</Button>
-      </div>
+      <PageHeader
+        title="Parents"
+        subtitle="Families and which baby each parent is linked to"
+        actions={<Button icon={<UserPlus size={16} />} onClick={() => setModal({ type: 'add' })}>Add parent</Button>}
+      />
       {error && <p style={{ color: c.danger }}>{error}</p>}
       {loading ? <Spinner /> : parents.length === 0 ? (
         <EmptyState icon={<UsersIcon size={34} color={c.textFaint} />} title="No parents yet" hint="Add a parent and link them to a baby." />
@@ -339,9 +483,13 @@ function ParentsView() {
                 </td>
                 <td style={td}><AccountBadge user={p} /></td>
                 <td style={td}>
-                  {!p.invite_used && (
-                    <Button size="sm" variant="ghost" icon={<Mail size={13} />} onClick={() => setModal({ type: 'resend', email: p.email })}>Resend invite</Button>
-                  )}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <Button size="sm" variant="ghost" icon={<Pencil size={13} />} onClick={() => setModal({ type: 'edit', parent: p })}>Edit</Button>
+                    {!p.invite_used && (
+                      <Button size="sm" variant="ghost" icon={<Mail size={13} />} onClick={() => setModal({ type: 'resend', email: p.email })}>Resend invite</Button>
+                    )}
+                    <Button size="sm" variant="ghost" icon={<Trash2 size={13} />} style={{ color: c.danger, borderColor: c.dangerSoft }} onClick={() => setModal({ type: 'delete', parent: p })}>Delete</Button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -350,45 +498,22 @@ function ParentsView() {
       )}
 
       {modal?.type === 'add' && <AddParentModal onClose={() => setModal(null)} onDone={fetchParents} />}
+      {modal?.type === 'edit' && <EditParentModal parent={modal.parent} onClose={() => setModal(null)} onDone={fetchParents} />}
       {modal?.type === 'resend' && <ResendInviteModal email={modal.email} onClose={() => setModal(null)} />}
+      {modal?.type === 'delete' && (
+        <ConfirmDeleteModal
+          title="Delete parent"
+          body={<>Permanently delete <strong>{modal.parent.first_name} {modal.parent.last_name}</strong> ({modal.parent.hospital_id})? This removes their account and unlinks them from any babies. This cannot be undone.</>}
+          onDelete={(force) => api.delete(`/admin/parents/${modal.parent.id}${force ? '?force=true' : ''}`)}
+          escalateKey="recordings"
+          escalateTitle="Delete the parent and all their messages?"
+          escalateBody={(n) => <><strong>{modal.parent.first_name} {modal.parent.last_name}</strong> has sent <strong>{n}</strong> recording(s). Continuing will <strong>permanently erase those messages and their history</strong>. This cannot be undone.</>}
+          escalateLabel={(n) => `Delete parent + ${n} recording(s)`}
+          onClose={() => setModal(null)}
+          onDone={fetchParents}
+        />
+      )}
     </div>
   );
 }
 
-/* ------------------------------- Tab -------------------------------- */
-const SUBTABS = [
-  { key: 'nurses', label: 'Nurses', icon: Stethoscope },
-  { key: 'parents', label: 'Parents', icon: UsersIcon },
-];
-
-export default function UsersTab() {
-  const [view, setView] = useState('nurses');
-
-  return (
-    <div>
-      <PageHeader title="People" subtitle="Nurses, parents, and who’s linked to which baby" />
-
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-        {SUBTABS.map(t => {
-          const active = view === t.key;
-          return (
-            <button
-              key={t.key}
-              onClick={() => setView(t.key)}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px',
-                borderRadius: theme.radius.pill, border: `1.5px solid ${active ? c.accent : c.border}`,
-                background: active ? c.accentSoft : c.cardBg, color: active ? c.accent : c.textMuted,
-                cursor: 'pointer', fontSize: 14, fontWeight: active ? 800 : 600,
-              }}
-            >
-              <t.icon size={16} /> {t.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {view === 'nurses' ? <NursesView /> : <ParentsView />}
-    </div>
-  );
-}

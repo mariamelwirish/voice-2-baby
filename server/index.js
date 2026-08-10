@@ -10,6 +10,7 @@ const adminRoutes = require('./routes/admin'); // Imports the admin routes defin
 const devicesRoutes = require('./routes/devices'); // Imports the devices routes defined in devices.js
 const { startScheduler } = require('./scheduler');
 const { startIotSubscriber } = require('./iotSubscriber');
+const { runMigrations } = require('./migrate');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,9 +36,22 @@ app.get('/', (req, res) => {
 
 // Test database connection then start server
 pool.getConnection()
-  .then(connection => {
+  .then(async connection => {
     console.log('Database connected successfully');
     connection.release();
+
+    // Bring the schema up to date before serving traffic, so a deploy migrates
+    // the DB on its own. Abort on failure — better a visible failed start than
+    // the app running against a half-migrated schema. Opt out with RUN_MIGRATIONS=false.
+    if (process.env.RUN_MIGRATIONS !== 'false') {
+      try {
+        await runMigrations();
+      } catch (err) {
+        console.error('Migrations failed — refusing to start:', err.message);
+        process.exit(1);
+      }
+    }
+
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });

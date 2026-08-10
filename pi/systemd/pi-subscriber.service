@@ -1,0 +1,20 @@
+[Unit]
+Description=NICU speaker subscriber
+# Start only after first-boot provisioning has produced the device cert +
+# device_config.py. Requires= means if provisioning failed, we don't start with
+# no identity; After= orders us after it. Once provisioned, later reboots just
+# see the oneshot succeed instantly and the subscriber comes straight up.
+Requires=pi-provision.service
+After=pi-provision.service
+
+[Service]
+# Runs as the logged-in user (a USER service + lingering) so mpg123 can reach
+# the Pi's audio (PipeWire). No User= line, no network-online dependency —
+# Restart=always retries until the network + AWS are reachable.
+WorkingDirectory=%h
+ExecStart=/usr/bin/python3 %h/pi_subscriber.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -113,6 +113,11 @@ CREATE TABLE schedules (
 CREATE TABLE devices (
     id CHAR(36) PRIMARY KEY,
     device_code VARCHAR(50) UNIQUE NOT NULL,
+    -- Pi hardware serial (/proc/cpuinfo). Set by fleet self-provisioning so a
+    -- re-flashed device with the same serial reuses its existing device_code
+    -- instead of creating a duplicate row. NULL for devices registered manually
+    -- via the Speakers tab before they ever provision.
+    serial_number VARCHAR(64) UNIQUE,
     baby_id CHAR(36) UNIQUE,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     is_online BOOLEAN DEFAULT FALSE,

@@ -4,26 +4,41 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch: {}   # adds a manual "Run workflow" button in the Actions tab
+
+# Never let two deploys run at once (a later push waits for the current one).
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    # Records a real GitHub Deployment to the "production" environment, so the
+    # repo's Environments/Deployments UI shows "Deployed" with in-progress ->
+    # success/failure status and a link to the live site.
+    environment:
+      name: production
+      url: https://remotereading.duckdns.org
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -e
             cd /home/ec2-user/remote-reading
             git pull origin main
             cd server
             npm install --production
+            npm run migrate                 # apply any new DB migrations
             pm2 restart remote-reading-server || pm2 start index.js --name remote-reading-server
             pm2 save
             cd ../client

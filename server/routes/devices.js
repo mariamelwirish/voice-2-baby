@@ -1,10 +1,23 @@
 // devices.js
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const pool = require('../config/db');
 const authenticate = require('../middleware/auth');
 const requireRole = require('../middleware/requireRole');
 const { v4: uuidv4 } = require('uuid');
+
+// Constant-time comparison of the machine-to-machine provisioning secret.
+// Returns false on any mismatch (including a missing/empty secret either side)
+// without leaking timing about how much matched.
+function provisioningSecretMatches(provided) {
+    const expected = process.env.DEVICE_PROVISION_SECRET || '';
+    if (!expected || !provided) return false;
+    const a = Buffer.from(String(provided));
+    const b = Buffer.from(expected);
+    if (a.length !== b.length) return false;
+    return crypto.timingSafeEqual(a, b);
+}
 
 // HELPERS
 
@@ -134,6 +147,79 @@ router.post('/', authenticate, requireRole('admin'), async (req, res) => {
     } catch (err) {
         console.error('POST /devices error:', err);
         return res.status(500).json({ error: 'Failed to register device' });
+    }
+});
+
+// POST /api/v1/devices/provision
+// Machine-to-machine — called by the fleet-provisioning pre-provisioning Lambda
+// on a Pi's first boot, NOT by a logged-in user. Authenticated by a shared
+// secret header (x-provision-secret), never a user JWT. Allocates the next
+// collision-free PI-##### and inserts the devices row so the speaker shows up
+// (Online, unassigned) in the Speakers tab with no manual registration.
+//
+// Idempotent by the Pi's hardware serial: a re-flashed device with the same
+// serial gets its EXISTING device_code back instead of a duplicate row.
+router.post('/provision', async (req, res) => {
+    if (!provisioningSecretMatches(req.get('x-provision-secret'))) {
+        return res.status(401).json({ error: 'Unauthorized.' });
+    }
+
+    const serial = typeof req.body?.serial_number === 'string' ? req.body.serial_number.trim() : '';
+    if (!serial) {
+        return res.status(400).json({ error: 'serial_number is required.' });
+    }
+
+    try {
+        // Already provisioned? Return the same code — the whole point of tracking
+        // the serial is that re-flashing hardware never spawns a second speaker.
+        const [existing] = await pool.query(
+            'SELECT device_code, is_active FROM devices WHERE serial_number = ?',
+            [serial]
+        );
+        if (existing.length > 0) {
+            return res.status(200).json({
+                device_code: existing[0].device_code,
+                is_active: !!existing[0].is_active,
+                reused: true,
+            });
+        }
+
+        // New hardware — allocate a unique PI-##### and insert. Retry a few times
+        // in case two devices provision at the same instant and compute the same
+        // next code (the UNIQUE constraint is the backstop).
+        for (let attempt = 0; attempt < 4; attempt++) {
+            const code = await nextDeviceCode();
+            const id = uuidv4();
+            try {
+                await pool.query(
+                    'INSERT INTO devices (id, device_code, serial_number, is_active) VALUES (?, ?, ?, TRUE)',
+                    [id, code, serial]
+                );
+                return res.status(201).json({ device_code: code, is_active: true, reused: false });
+            } catch (insErr) {
+                if (insErr.code === 'ER_DUP_ENTRY') {
+                    // Could be a device_code race, or a serial race (the same Pi
+                    // calling twice). If the serial now exists, hand back its code.
+                    const [again] = await pool.query(
+                        'SELECT device_code, is_active FROM devices WHERE serial_number = ?',
+                        [serial]
+                    );
+                    if (again.length > 0) {
+                        return res.status(200).json({
+                            device_code: again[0].device_code,
+                            is_active: !!again[0].is_active,
+                            reused: true,
+                        });
+                    }
+                    continue; // device_code collision — recompute and retry
+                }
+                throw insErr;
+            }
+        }
+        return res.status(500).json({ error: 'Could not allocate a device ID. Please retry.' });
+    } catch (err) {
+        console.error('POST /devices/provision error:', err);
+        return res.status(500).json({ error: 'Failed to provision device.' });
     }
 });
 

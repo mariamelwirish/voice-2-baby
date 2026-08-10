@@ -1,0 +1,19 @@
+[Unit]
+Description=NICU speaker first-boot provisioning
+# Provision before the subscriber starts, and only once the network is up.
+Before=pi-subscriber.service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+# One-shot: runs provision_agent.py, which is a no-op after the first successful
+# boot. RemainAfterExit keeps it "active (exited)" so the subscriber's ordering
+# dependency is satisfied. The agent retries the network internally, so a slow
+# first-boot DHCP/Wi-Fi doesn't need a systemd-level restart.
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=%h
+ExecStart=/usr/bin/python3 %h/provision_agent.py
+
+[Install]
+WantedBy=default.target

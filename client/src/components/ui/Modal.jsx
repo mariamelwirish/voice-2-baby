@@ -3,8 +3,10 @@ import { theme } from '../../theme';
 
 export function Modal({ title, onClose, children, maxWidth = 480 }) {
   return (
+    // Backdrop deliberately does NOT close on click — an accidental outside
+    // click must never discard a half-filled form or an in-progress recording.
+    // Close only via the X button or an explicit Cancel/Done action.
     <div
-      onMouseDown={onClose}
       style={{
         position: 'fixed', inset: 0, background: theme.color.overlay,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -12,7 +14,6 @@ export function Modal({ title, onClose, children, maxWidth = 480 }) {
       }}
     >
       <div
-        onMouseDown={(e) => e.stopPropagation()}
         style={{
           background: theme.color.cardBg, borderRadius: theme.radius.lg, padding: 28,
           width: '100%', maxWidth, maxHeight: '90vh', overflowY: 'auto',

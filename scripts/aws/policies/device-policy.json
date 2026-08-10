@@ -1,0 +1,31 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "iot:Connect",
+      "Resource": "arn:aws:iot:REGION_PLACEHOLDER:ACCOUNT_PLACEHOLDER:client/${iot:Connection.Thing.ThingName}"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "iot:Subscribe",
+      "Resource": [
+        "arn:aws:iot:REGION_PLACEHOLDER:ACCOUNT_PLACEHOLDER:topicfilter/devices/${iot:Connection.Thing.ThingName}/play",
+        "arn:aws:iot:REGION_PLACEHOLDER:ACCOUNT_PLACEHOLDER:topicfilter/devices/${iot:Connection.Thing.ThingName}/stop"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": "iot:Receive",
+      "Resource": [
+        "arn:aws:iot:REGION_PLACEHOLDER:ACCOUNT_PLACEHOLDER:topic/devices/${iot:Connection.Thing.ThingName}/play",
+        "arn:aws:iot:REGION_PLACEHOLDER:ACCOUNT_PLACEHOLDER:topic/devices/${iot:Connection.Thing.ThingName}/stop"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": "iot:Publish",
+      "Resource": "arn:aws:iot:REGION_PLACEHOLDER:ACCOUNT_PLACEHOLDER:topic/devices/${iot:Connection.Thing.ThingName}/status"
+    }
+  ]
+}

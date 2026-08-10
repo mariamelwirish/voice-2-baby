@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Pencil, Ban, RotateCcw, DoorOpen } from 'lucide-react';
+import { Plus, Pencil, Ban, RotateCcw, DoorOpen, Trash2 } from 'lucide-react';
 import api from '../../../api/client';
 import { Modal } from '../../../components/ui/Modal';
+import { ConfirmDeleteModal } from '../../../components/ui/ConfirmDeleteModal';
 import { theme } from '../../../theme';
 import { Button, Badge, Field, Spinner, EmptyState, PageHeader } from '../../../components/ui';
 
@@ -126,6 +127,7 @@ export default function RoomsTab() {
                         ) : (
                           <Button size="sm" variant="ghost" icon={<RotateCcw size={13} />} style={{ color: c.success, borderColor: c.successSoft }} onClick={() => handleReactivate(room)}>Reactivate</Button>
                         )}
+                        <Button size="sm" variant="ghost" icon={<Trash2 size={13} />} style={{ color: c.danger, borderColor: c.dangerSoft }} onClick={() => setModal({ type: 'delete', room })}>Delete</Button>
                       </div>
                     </td>
                   </tr>
@@ -157,6 +159,15 @@ export default function RoomsTab() {
             <Button variant="danger" onClick={handleDeactivate} disabled={saving}>{saving ? 'Deactivating…' : 'Deactivate'}</Button>
           </div>
         </Modal>
+      )}
+      {modal?.type === 'delete' && (
+        <ConfirmDeleteModal
+          title="Delete room"
+          body={<>Permanently delete <strong>Room {modal.room.room_number}</strong>? This cannot be undone. A room with any babies still linked to it can’t be deleted — move or delete those babies first.</>}
+          onDelete={() => api.delete(`/rooms/${modal.room.id}`)}
+          onClose={closeModal}
+          onDone={fetchRooms}
+        />
       )}
     </div>
   );

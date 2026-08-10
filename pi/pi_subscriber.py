@@ -27,7 +27,14 @@ from device_config import DEVICE_CODE
 #   2. The device_code column in your devices table
 #   3. What the backend uses to build the topic (devices/{device_code}/play)
 
-IOT_ENDPOINT = "ad6mtn56o2o34-ats.iot.us-east-1.amazonaws.com"
+# Endpoint comes from the shared provisioning_config (baked into the image) so
+# the subscriber and the provisioning agent can never drift to different
+# endpoints. Falls back to the literal value for older, manually-provisioned Pis
+# that predate fleet provisioning and have no provisioning_config.py.
+try:
+    from provisioning_config import IOT_ENDPOINT
+except ImportError:
+    IOT_ENDPOINT = "ad6mtn56o2o34-ats.iot.us-east-1.amazonaws.com"
 IOT_PORT = 8883
 
 CERTS_DIR = Path.home() / "certs"

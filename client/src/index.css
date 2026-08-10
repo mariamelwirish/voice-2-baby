@@ -94,3 +94,9 @@ input:focus, select:focus, textarea:focus {
 @keyframes rr-spin {
   to { transform: rotate(360deg); }
 }
+
+/* Recording indicator pulse used by the parent record-on-spot UI */
+@keyframes rr-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.35; transform: scale(0.8); }
+}
