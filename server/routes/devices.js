@@ -63,7 +63,7 @@ router.get('/', authenticate, requireRole('nurse', 'admin'), async (req, res) =>
                     -- fallback in case a Last Will message was ever missed.
                     WHEN d.is_online = TRUE
                          AND d.last_seen_at IS NOT NULL
-                         AND d.last_seen_at > (NOW() - INTERVAL 2 MINUTE)
+                         AND d.last_seen_at > (NOW() - INTERVAL 45 SECOND)
                     THEN TRUE ELSE FALSE
                 END AS is_online
          FROM devices d

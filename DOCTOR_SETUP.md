@@ -35,16 +35,23 @@ speaker. You won't need any help from IT.
 4. Click **"Choose Storage"** → pick your **memory card** from the list.
    ⚠️ Make sure it's the memory card and not another drive — this step erases it.
 
-5. Click **"Next."** When it asks
-   **"Would you like to apply OS customisation settings?"**, click
-   **"Edit Settings"**:
-   - Turn on **"Configure wireless LAN"**.
-   - Type your **Wi-Fi name** and **password** exactly.
-   - Choose your **country**.
-   - Click **"Save."**
+5. Click **"Next."** If it asks *"Would you like to apply OS customisation
+   settings?"*, click **"No"** — you'll set the Wi-Fi in an easier way in a moment.
+   Wait a few minutes while it copies. When it's done, it ejects the card.
 
-6. Click **"Yes"** to begin. Wait a few minutes while it copies. When it says
-   it's finished, remove the memory card.
+6. **Set your Wi-Fi (this is the important step):**
+   - Take the memory card out and **put it back in** your computer.
+   - A drive named **`bootfs`** appears. Open it.
+   - Open the file **`wifi.txt`** (double-click; it opens in a text editor).
+   - Type your **Wi-Fi name** after `ssid=` and your **password** after
+     `password=`, for example:
+     ```
+     ssid=NICU-Staff-WiFi
+     password=mypassword123
+     country=US
+     ```
+     (If you're outside the US, change `country` to your 2-letter code.)
+   - **Save** the file and close it. Eject the card safely.
 
 ---
 
@@ -56,9 +63,9 @@ speaker. You won't need any help from IT.
 
 9. Plug in the **power adapter**. The Raspberry Pi turns on by itself.
 
-10. **Wait about 2 minutes.** The first time, it sets itself up and connects on
-    its own. You don't need to do anything — there's no screen or keyboard to
-    plug in.
+10. **Wait about 5 minutes.** The first time, it installs itself, restarts once
+    on its own, then connects. This is normal — you don't need to do anything,
+    and there's no screen or keyboard to plug in. (Every start after this is quick.)
 
 ---
 

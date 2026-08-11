@@ -18,7 +18,7 @@ cd "$HOME"
 
 echo "==> Installing system + Python dependencies..."
 sudo apt-get update -qq
-sudo apt-get install -y -qq mpg123 python3-pip
+sudo apt-get install -y -qq ffmpeg python3-pip
 python3 -m pip install -r requirements.txt --break-system-packages
 
 echo "==> Sanity-checking required files..."

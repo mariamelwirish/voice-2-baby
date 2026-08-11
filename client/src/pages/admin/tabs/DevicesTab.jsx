@@ -185,11 +185,14 @@ export default function DevicesTab() {
   useEffect(() => {
     fetchDevices();
     api.get('/babies', { params: { status: 'active' } }).then(({ data }) => setActiveBabies(data)).catch(() => {});
-    // Only poll while the tab is visible — no wasted requests in background tabs.
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') fetchDevices();
-    }, 10000);
-    return () => clearInterval(interval);
+    // Poll every 5s, and keep polling even when the tab is in the background, so
+    // a device going offline is reflected in near-real-time (~45s server-side)
+    // without the operator having to refocus the tab. Refresh immediately on
+    // refocus too, so returning to the tab never shows a stale state.
+    const interval = setInterval(fetchDevices, 5000);
+    const onVisible = () => { if (document.visibilityState === 'visible') fetchDevices(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(interval); document.removeEventListener('visibilitychange', onVisible); };
   }, [fetchDevices]);
 
   // Active babies that don't yet have a speaker (for the assign picker).

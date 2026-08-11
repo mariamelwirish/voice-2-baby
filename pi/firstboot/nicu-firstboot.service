@@ -1,0 +1,18 @@
+[Unit]
+Description=NICU speaker first-boot setup (WiFi + installs software + provisions)
+# We need NetworkManager (to bring up WiFi from wifi.txt) but NOT
+# network-online: on a fresh Pi there's no network yet BECAUSE we haven't
+# configured WiFi. firstboot.sh configures WiFi first, then waits for
+# connectivity itself.
+After=NetworkManager.service
+Wants=NetworkManager.service
+# Only run while the bootstrap payload is still present; firstboot.sh removes
+# the payload + disables this unit once it has succeeded.
+ConditionPathExists=/opt/nicu/firstboot.sh
+
+[Service]
+Type=oneshot
+ExecStart=/opt/nicu/firstboot.sh
+
+[Install]
+WantedBy=multi-user.target

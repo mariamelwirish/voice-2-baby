@@ -167,12 +167,42 @@ async function triggerScheduledPlayback(schedule_id, recording_id) {
     }
 }
 
+// The ONLY thing that actively marks a device offline. The Last Will (LWT) path
+// in iotSubscriber.js is best-effort and often doesn't fire (WiFi dies before
+// the will registers, broker hiccup, subscriber briefly deaf). Without this
+// sweep, is_online stays TRUE forever after a silent drop — which is exactly the
+// "still shows online 10 minutes later" bug. A device that hasn't sent a
+// heartbeat within the window is offline, period. Heartbeats are every 15s, so
+// 45s = ~3 missed beats before we flip it (one blip won't).
+const OFFLINE_AFTER_SECONDS = 45;
+
+async function sweepOfflineDevices() {
+    try {
+        const [result] = await pool.query(
+            `UPDATE devices
+             SET is_online = FALSE
+             WHERE is_online = TRUE
+               AND (last_seen_at IS NULL OR last_seen_at < NOW() - INTERVAL ? SECOND)`,
+            [OFFLINE_AFTER_SECONDS]
+        );
+        if (result.affectedRows > 0) {
+            console.log(`Scheduler: marked ${result.affectedRows} device(s) offline (no heartbeat in ${OFFLINE_AFTER_SECONDS}s).`);
+        }
+    } catch (err) {
+        console.error('Scheduler: error sweeping offline devices:', err);
+    }
+}
+
 function startScheduler() {
     cron.schedule('* * * * *', () => {
         processDueSchedules();
         recoverStalePlaybacks();
     });
-    console.log('Scheduler started — checking for due recordings every minute.');
+    // Offline detection runs on its own fast cadence (every 15s) so a dropped
+    // device shows offline in ~45-60s, not once a minute.
+    sweepOfflineDevices();
+    setInterval(sweepOfflineDevices, 15000);
+    console.log('Scheduler started — schedules every minute, device-offline sweep every 15s.');
 }
 
 // Runs alongside processDueSchedules() every minute. Catches recordings
