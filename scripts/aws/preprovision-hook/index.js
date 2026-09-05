@@ -18,7 +18,7 @@
 //   - Node 18+ runtime: global fetch is available, no dependencies to bundle.
 //
 // Env vars (set by setup-fleet-provisioning.sh):
-//   PROVISION_URL    - e.g. https://remotereading.duckdns.org/api/v1/devices/provision
+//   PROVISION_URL    - e.g. https://voice2baby.com/api/v1/devices/provision
 //   PROVISION_SECRET - must match the server's DEVICE_PROVISION_SECRET
 
 exports.handler = async (event) => {

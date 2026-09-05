@@ -20,7 +20,7 @@ jobs:
     # success/failure status and a link to the live site.
     environment:
       name: production
-      url: https://remotereading.duckdns.org
+      url: https://voice2baby.com
 
     steps:
       - name: Checkout code
