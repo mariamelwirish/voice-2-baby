@@ -40,7 +40,7 @@ export function CoBrandingFooter({ style }) {
           <LogoImg src="/logos/vcu-health.png" alt="VCU Health" height={40} />
         </div>
         <div style={{ fontSize: 12, color: c.textMuted }}>
-          Remote Reading for Newborns · VCU Health NICU
+          Voice2Baby · VCU Health NICU
         </div>
       </div>
     </footer>

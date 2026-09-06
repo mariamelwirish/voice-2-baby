@@ -5,6 +5,7 @@ import { theme } from '../../theme';
 export { Select } from './Select';
 export { ThemeToggle } from './ThemeToggle';
 export { Modal } from './Modal';
+export { Logo } from './Logo';
 
 const c = theme.color;
 

@@ -1,6 +1,5 @@
-import { Baby } from 'lucide-react';
 import { theme } from '../../theme';
-import { Card } from '../ui';
+import { Card, Logo } from '../ui';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { CoBrandingFooter } from './CoBranding';
 
@@ -26,10 +25,10 @@ export function AuthShell({ title, subtitle, children, footer }) {
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               color: c.accent, boxShadow: theme.shadow.sm,
             }}>
-              <Baby size={30} strokeWidth={2.2} />
+              <Logo size={32} strokeWidth={1.9} />
             </div>
             <h1 style={{ margin: '14px 0 0', fontSize: 20, fontWeight: 800, color: c.text }}>
-              Remote Reading for Newborns
+              Voice2Baby
             </h1>
             <p style={{ margin: '4px 0 0', color: c.textMuted, fontSize: 14 }}>
               A gentle way to be there for your baby

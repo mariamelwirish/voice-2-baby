@@ -1,6 +1,7 @@
-import { Baby, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { theme } from '../../theme';
+import { Logo } from '../ui/Logo';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { CoBrandingInline } from './CoBranding';
 
@@ -20,11 +21,11 @@ export function AppTopBar({ roleLabel, userName }) {
             width: 38, height: 38, borderRadius: 12, background: c.accentSoft, color: c.accent,
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}>
-            <Baby size={21} strokeWidth={2.2} />
+            <Logo size={22} strokeWidth={1.9} />
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 800, fontSize: 15, color: c.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Remote Reading
+              Voice2Baby
             </div>
             {roleLabel && <div style={{ fontSize: 12, color: c.textMuted }}>{roleLabel}</div>}
           </div>

@@ -31,7 +31,7 @@ app.use('/api/v1/devices', devicesRoutes); // Mounts the devices routes at /api/
 
 // Health check route
 app.get('/', (req, res) => {
-  res.json({ message: 'Remote Reading API is running' });
+  res.json({ message: 'Voice2Baby API is running' });
 });
 
 // Test database connection then start server
