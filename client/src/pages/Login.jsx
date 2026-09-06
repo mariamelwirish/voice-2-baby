@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import api from '../api/client';
@@ -63,6 +63,11 @@ export default function Login() {
         <Button type="submit" disabled={loading} style={{ width: '100%' }}>
           {loading ? 'Signing in…' : 'Sign in'}
         </Button>
+        <div style={{ textAlign: 'center', marginTop: 16 }}>
+          <Link to="/forgot-password" style={{ color: theme.color.accent, fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>
+            Forgot your password?
+          </Link>
+        </div>
       </form>
     </AuthShell>
   );

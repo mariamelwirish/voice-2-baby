@@ -81,10 +81,21 @@ const notifyInvite = (email, firstName, role, rawToken) => {
     );
 };
 
+// Send a password-reset link. rawToken is the plaintext reset token (never the hash).
+const notifyPasswordReset = (email, firstName, rawToken) => {
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`;
+    return sendEmail(
+        email,
+        'Reset your Voice2Baby password',
+        `Dear ${firstName},\n\nWe received a request to reset the password for your Voice2Baby account. Use the link below to choose a new password within 1 hour:\n\n${resetUrl}\n\nIf you did not request this, you can safely ignore this email — your password will not change.\n\nBest regards,\nVoice2Baby Team`
+    );
+};
+
 module.exports = {
     notifyParentScheduled,
     notifyParentRescheduled,
     notifyParentPlayed,
     notifyParentRejected,
-    notifyInvite
+    notifyInvite,
+    notifyPasswordReset
 };

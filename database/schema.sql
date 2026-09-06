@@ -11,6 +11,8 @@ CREATE TABLE users (
     invite_token VARCHAR(255),
     invite_token_expires_at TIMESTAMP,
     invite_used BOOLEAN DEFAULT FALSE,
+    reset_token VARCHAR(255),
+    reset_token_expires_at TIMESTAMP NULL,
     created_by CHAR(36),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
