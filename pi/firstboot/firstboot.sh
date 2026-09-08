@@ -22,16 +22,44 @@ set -e
 exec >>/var/log/nicu-firstboot.log 2>&1
 echo "=== nicu-firstboot $(date -u) ==="
 
+# Mirror this log to the FAT boot partition on every exit (success OR failure), so
+# it can be read by just opening the SD card on any computer — no Linux/SSH/debugfs
+# needed. Appears as "nicu-firstboot.log" on the "bootfs" drive.
+BOOT_OUT=/boot/firmware; [ -d "$BOOT_OUT" ] || BOOT_OUT=/boot
+trap 'cp -f /var/log/nicu-firstboot.log "$BOOT_OUT/nicu-firstboot.log" 2>/dev/null || true' EXIT
+
 STAGE=/opt/nicu
 
-# 1. The human user Imager created (uid 1000). May not exist on a very early
-#    boot — if so, bail and retry next boot.
-USER_NAME="$(getent passwd 1000 | cut -d: -f1 || true)"
-USER_HOME="$(getent passwd 1000 | cut -d: -f6 || true)"
-if [ -z "$USER_NAME" ] || [ -z "$USER_HOME" ]; then
-    echo "No uid-1000 user yet — will retry on next boot."
+# 0. Wait for cloud-init to FULLY finish first. On current Raspberry Pi OS,
+#    cloud-init creates (and briefly rewrites) the primary user account in a late
+#    stage that runs CONCURRENTLY with us — so the account can be valid one moment
+#    and invalid the next while we work ("install: invalid user 'pi'"). Blocking
+#    here until cloud-init is done makes the account stable before we touch it.
+#    `status --wait` returns when cloud-init reaches done/error; the timeout means
+#    we never hang forever if cloud-init is degraded.
+if command -v cloud-init >/dev/null 2>&1; then
+    echo "waiting for cloud-init to finish so the user account is stable..."
+    timeout 300 cloud-init status --wait >/dev/null 2>&1 || true
+    echo "cloud-init finished (or timed out) — continuing."
+fi
+
+# 1. The primary user (uid 1000). Even after cloud-init, re-confirm the account is
+#    fully resolvable by NAME (not just present by uid) before using it — belt and
+#    suspenders. If it never becomes valid, bail and let systemd re-run us next boot.
+USER_NAME=""
+for i in $(seq 1 150); do
+    _u="$(getent passwd 1000 | cut -d: -f1)"
+    if [ -n "$_u" ] && id "$_u" >/dev/null 2>&1 && getent passwd "$_u" >/dev/null 2>&1; then
+        USER_NAME="$_u"; break
+    fi
+    echo "waiting for the primary user account to finish being created ($i/150)..."
+    sleep 2
+done
+if [ -z "$USER_NAME" ]; then
+    echo "Primary user not fully created yet — will retry on next boot."
     exit 1
 fi
+USER_HOME="$(getent passwd "$USER_NAME" | cut -d: -f6)"
 UID_NUM="$(id -u "$USER_NAME")"
 echo "Primary user: $USER_NAME ($USER_HOME)"
 
@@ -42,14 +70,14 @@ LOGIN_FILE=/boot/firmware/login.txt
 if [ -f "$LOGIN_FILE" ]; then
     NEW_USER="$(sed -n 's/^[[:space:]]*username[[:space:]]*=[[:space:]]*//Ip' "$LOGIN_FILE" | head -1 | tr -d '\r' | xargs)"
     NEW_PASS="$(sed -n 's/^[[:space:]]*password[[:space:]]*=[[:space:]]*//Ip' "$LOGIN_FILE" | head -1 | tr -d '\r')"
-    if [ -n "$NEW_USER" ] && [ "$NEW_USER" != "YOUR_USERNAME" ] && [ "$NEW_USER" != "$USER_NAME" ] && ! id "$NEW_USER" >/dev/null 2>&1; then
-        echo "Setting SSH username to '$NEW_USER'..."
-        pkill -KILL -u "$USER_NAME" 2>/dev/null || true
-        sleep 1
-        usermod  -l "$NEW_USER" "$USER_NAME" 2>/dev/null || true
-        groupmod -n "$NEW_USER" "$USER_NAME" 2>/dev/null || true
-        usermod  -d "/home/$NEW_USER" -m "$NEW_USER" 2>/dev/null || true
-        if id "$NEW_USER" >/dev/null 2>&1; then USER_NAME="$NEW_USER"; USER_HOME="/home/$NEW_USER"; fi
+    # NOTE: we deliberately do NOT honor a custom username. Renaming the live
+    # primary account on Raspberry Pi OS is unreliable — it half-completes and
+    # corrupts the account (breaking sudo and first boot). The baked default user
+    # is kept; only the password and hostname below are applied. (A custom SSH
+    # username has little value anyway: enterprise networks block device-to-device
+    # SSH, so debugging is done via the SD card, not SSH.)
+    if [ -n "$NEW_USER" ] && [ "$NEW_USER" != "YOUR_USERNAME" ] && [ "$NEW_USER" != "$USER_NAME" ]; then
+        echo "Note: custom username '$NEW_USER' ignored (keeping default '$USER_NAME'); applying password/hostname only."
     fi
     if [ -n "$NEW_PASS" ] && [ "$NEW_PASS" != "YOUR_PASSWORD" ]; then
         echo "Setting SSH password for '$USER_NAME'."
@@ -65,27 +93,19 @@ if [ -f "$LOGIN_FILE" ]; then
 fi
 UID_NUM="$(id -u "$USER_NAME")"
 
-# 1.5 Bring up WiFi from the doctor's wifi.txt (skipped if Ethernet already gave
-#     us a connection, or if wifi.txt was left with the placeholder values).
-WIFI_FILE=/boot/firmware/wifi.txt
-[ -f "$WIFI_FILE" ] || WIFI_FILE=/boot/wifi.txt
-if [ -f "$WIFI_FILE" ]; then
-    SSID="$(sed -n 's/^[[:space:]]*ssid[[:space:]]*=[[:space:]]*//Ip'     "$WIFI_FILE" | head -1 | tr -d '\r')"
-    PSK="$(sed -n  's/^[[:space:]]*password[[:space:]]*=[[:space:]]*//Ip' "$WIFI_FILE" | head -1 | tr -d '\r')"
-    COUNTRY="$(sed -n 's/^[[:space:]]*country[[:space:]]*=[[:space:]]*//Ip' "$WIFI_FILE" | head -1 | tr -d '\r')"
-    COUNTRY="${COUNTRY:-US}"
-    if [ -n "$SSID" ] && [ "$SSID" != "YOUR_WIFI_NAME" ]; then
-        echo "Configuring WiFi for SSID '$SSID' (country $COUNTRY)..."
-        raspi-config nonint do_wifi_country "$COUNTRY" 2>/dev/null || iw reg set "$COUNTRY" 2>/dev/null || true
-        rfkill unblock wifi 2>/dev/null || true
-        nmcli radio wifi on 2>/dev/null || true
-        nmcli connection delete nicu-wifi 2>/dev/null || true
-        nmcli connection add type wifi con-name nicu-wifi ifname wlan0 ssid "$SSID" 2>/dev/null || true
-        nmcli connection modify nicu-wifi wifi-sec.key-mgmt wpa-psk wifi-sec.psk "$PSK" connection.autoconnect yes 2>/dev/null || true
-        nmcli connection up nicu-wifi 2>/dev/null || echo "WiFi will keep retrying as the radio settles."
-    else
-        echo "wifi.txt still has placeholder values — relying on Ethernet if present."
-    fi
+# Some Raspberry Pi OS first-boot setups leave the primary account briefly without
+# a login shell, which makes runuser/sudo refuse it ("entry does not contain all
+# the required fields") and used to halt setup. Ensure a shell so every later
+# per-user step is safe.
+usermod -s /bin/bash "$USER_NAME" 2>/dev/null || true
+
+# 1.5 Bring up WiFi from the doctor's wifi.txt (home WPA2 / university enterprise /
+#     open). The logic lives in the shared apply-wifi.sh, which also runs on every
+#     later boot via nicu-wifi.service so the network can be changed in the field
+#     by editing wifi.txt on the SD card — no reflash. Skipped harmlessly if
+#     Ethernet is already connected or wifi.txt still has placeholder values.
+if [ -x /usr/local/sbin/nicu-apply-wifi.sh ]; then
+    /usr/local/sbin/nicu-apply-wifi.sh || true
 fi
 
 # 2. Wait for real connectivity (apt/pip + AWS need it).
@@ -122,7 +142,10 @@ echo "Clock after sync:  $(date -u)"
 #    did MP3.
 apt-get update -qq
 apt-get install -y -qq ffmpeg python3-pip
-sudo -u "$USER_NAME" python3 -m pip install --break-system-packages awsiotsdk paho-mqtt requests
+# Install the Python deps as ROOT, system-wide (--break-system-packages puts them
+# on the global path). This makes them available to the user's services and avoids
+# depending on the primary account's shell/entry being fully formed at this point.
+python3 -m pip install --break-system-packages awsiotsdk paho-mqtt requests
 
 # 4. Copy software + certs into the user's home.
 for f in provision_agent.py pi_subscriber.py provisioning_config.py; do
@@ -152,4 +175,9 @@ echo "Setup complete — disabling first-boot and rebooting."
 systemctl disable nicu-firstboot.service || true
 rm -rf "$STAGE"
 echo "=== nicu-firstboot done $(date -u) ==="
-systemctl reboot
+# --no-block is REQUIRED: a plain `systemctl reboot` called from inside this
+# service deadlocks (systemd waits to stop this service to reboot, but this
+# service is blocked waiting on the reboot) — the Pi hangs until a manual power
+# cycle. --no-block queues the reboot and lets ExecStart return first, so systemd
+# reboots cleanly on its own. No manual replug needed.
+systemctl --no-block reboot

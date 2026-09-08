@@ -1,8 +1,11 @@
-# Setting up a NICU Reading Speaker
+# Setting up a Voice2Baby Speaker
 
 This guide is for the doctor or nurse setting up a new speaker. No technical
 experience needed. It takes about 10 minutes, and you only do it once per
-speaker. You won't need any help from IT.
+speaker. For normal home/clinic Wi-Fi you won't need any help from IT. For a
+**university or hospital "enterprise" network** (the kind that asks for a
+*username and password*, like eduroam), you'll need a few details from IT first
+— see "What you'll need" below.
 
 ---
 
@@ -13,9 +16,15 @@ speaker. You won't need any help from IT.
 - A **small speaker** that plugs into the Raspberry Pi (USB or headphone-style).
 - Any **computer** (Windows or Mac) with a memory-card slot, or a small USB
   card reader.
-- Your **Wi-Fi name and password**.
+- Your **Wi-Fi details** — one of:
+  - **Normal Wi-Fi:** the **network name** and **password**.
+  - **University/enterprise Wi-Fi** (asks for a *username* and password): the
+    **network name**, a **username and password** (ideally a *device/service
+    account* from IT — not a personal login, so it keeps working long-term), and,
+    if IT provides them, the network's **security certificate file** and its
+    **server domain** (e.g. `vcu.edu`).
 
-*(These come in the starter kit — you don't have to figure out which parts to buy.)*
+*(The hardware comes in the starter kit — you don't have to figure out which parts to buy.)*
 
 ---
 
@@ -43,15 +52,43 @@ speaker. You won't need any help from IT.
    - Take the memory card out and **put it back in** your computer.
    - A drive named **`bootfs`** appears. Open it.
    - Open the file **`wifi.txt`** (double-click; it opens in a text editor).
-   - Type your **Wi-Fi name** after `ssid=` and your **password** after
-     `password=`, for example:
-     ```
-     ssid=NICU-Staff-WiFi
-     password=mypassword123
-     country=US
-     ```
-     (If you're outside the US, change `country` to your 2-letter code.)
+   - Fill in **one** of the three options below, matching your Wi-Fi. Only change
+     the values after each `=`; leave the labels as they are.
+
+   **A) Normal Wi-Fi** — a network name and one password (most homes/clinics):
+   ```
+   security=wpa-psk
+   ssid=NICU-Staff-WiFi
+   password=mypassword123
+   ```
+
+   **B) University / enterprise Wi-Fi** — asks for a *username and password*
+   (e.g. eduroam or a campus network):
+   ```
+   security=wpa-eap
+   ssid=eduroam
+   identity=deviceaccount@vcu.edu
+   password=the-account-password
+   ```
+   If IT gave you a **security certificate**, copy that `.pem` file onto this same
+   `bootfs` drive, then also set these two lines (ask IT for the domain):
+   ```
+   ca_cert=/boot/firmware/ca.pem
+   domain_suffix_match=vcu.edu
+   ```
+
+   **C) Open Wi-Fi** — no password:
+   ```
+   security=open
+   ssid=Guest-WiFi
+   ```
+
+   - (If you're outside the US, change the `country` line to your 2-letter code.)
    - **Save** the file and close it. Eject the card safely.
+
+   > 💡 You can change the Wi-Fi later **without redoing everything** — just put
+   > the card back into a computer, edit `wifi.txt`, save, and slide it back into
+   > the speaker. It picks up the new network on its next restart.
 
 ---
 
@@ -71,7 +108,7 @@ speaker. You won't need any help from IT.
 
 ## Part 3 — Connect the speaker to a baby (on the website)
 
-11. Open the **NICU Reading website** and sign in.
+11. Open the **Voice2Baby website** (voice2baby.com) and sign in.
 
 12. Go to the **Speakers** page. Your new speaker appears in the list, marked
     **"Online."**
@@ -87,8 +124,13 @@ baby's room.
 ## If something's not right
 
 - **The speaker never showed up on the website:**
-  - Check that your Wi-Fi name and password were typed correctly in Part 1,
-    step 5. If unsure, redo Part 1 (it's fine to reuse the same memory card).
+  - Check that your Wi-Fi details were typed correctly in Part 1, step 6 — the
+    right `security=` line for your network type, and the name/password (and
+    username, for enterprise). You can just re-edit `wifi.txt` on the card and
+    slide it back in — no need to re-flash.
+  - On an **enterprise/university** network, if it still won't appear, the campus
+    firewall may be blocking the speaker. Note the speaker never needs any inbound
+    access — only outbound to AWS — and share that with IT.
   - Make sure the power adapter is plugged in and the little light on the
     Raspberry Pi is on.
   - Give it a full 5 minutes on the first start.

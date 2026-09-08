@@ -1,16 +1,30 @@
-# Build & test the "NICU Speaker" thin image
+# Build & test the Voice2Baby speaker image
 
-This is the full, in-order runbook to build the small image doctors will flash,
-then test it on your own Pi. You do the **build** once (and again only if you
-change the Pi software); doctors never do any of this.
+This is the full runbook to build the small image doctors will flash, then test
+it. You do the **build** once (and again only if you change the Pi software);
+doctors never do any of this.
 
-**The plan:** your freshly-flashed Pi (running official Raspberry Pi OS Lite) acts
-as a temporary **Linux build machine**. You build the thin image on it, copy the
-result to your Mac, then flash that image back onto the card to test the real
-doctor flow. One Pi, one card — no extra hardware.
+Building means mounting the image's Linux (ext4) partition, which **macOS can't
+do directly**. There are two ways around that — pick one:
 
-Why the Pi and not your Mac: building means mounting the image's Linux (ext4)
-partition, which macOS can't do. Your Pi is Linux and handles it perfectly.
+- **Option A — Build on your Mac with Docker (recommended; no extra hardware).**
+  Docker runs a real Linux kernel, so one command builds the whole image:
+  ```bash
+  ./pi/build-image-docker.sh
+  ```
+  It downloads Raspberry Pi OS, runs the builder inside a throwaway privileged
+  Linux container, and writes `~/v2b-build/voice2baby-speaker.img`. Requires
+  Docker Desktop running and the claim cert at `scripts/certs/claim/`. Then skip
+  straight to **Stage 4 — Test it**.
+
+- **Option B — Build on a spare Raspberry Pi** (Stages 0–3 below). Use this if you
+  don't want Docker: a freshly-flashed Pi running Raspberry Pi OS Lite acts as a
+  temporary Linux build machine. (Note: the build Pi needs plain internet —
+  Ethernet or a password WiFi — because Raspberry Pi Imager can't join enterprise
+  WiFi like eduroam.)
+
+Either way, **Stage 4** (flash + set `wifi.txt` + boot) and **Stage 5** (host it)
+are identical.
 
 ---
 
@@ -103,16 +117,26 @@ Wait for the green light to stop, then move the SD card to your Mac.
 4. **Write.** If it asks *"apply OS customisation settings?"*, choose **No** —
    the image already has the user + SSH baked in, and you set WiFi next.
 5. When it finishes, **re-insert the card** into your Mac. A drive named
-   **`bootfs`** appears. Open **`wifi.txt`** on it, fill in your WiFi name +
-   password, save, then eject:
+   **`bootfs`** appears. Open **`wifi.txt`** on it and fill in the network type
+   for your site (the file documents all three), save, then eject:
    ```bash
-   nano /Volumes/bootfs/wifi.txt        # set ssid= and password=
+   nano /Volumes/bootfs/wifi.txt
    diskutil eject /Volumes/bootfs
    ```
+   - **Home / clinic Wi-Fi:** `security=wpa-psk` + `ssid=` + `password=`
+   - **University / enterprise (eduroam-style):** `security=wpa-eap` + `ssid=` +
+     `identity=` (username) + `password=`; for full security also drop the campus
+     CA `.pem` on `bootfs` and set `ca_cert=/boot/firmware/ca.pem` +
+     `domain_suffix_match=<their-domain>`
+   - **Open Wi-Fi:** `security=open` + `ssid=`
+
+   > The network is re-applied on **every boot** (via `nicu-wifi.service`), so you
+   > can change it later by editing `wifi.txt` on the card and reinserting it — no
+   > re-flash. It only re-applies when the file actually changes.
 6. Put the card in the Pi and plug in power.
 7. **Wait ~5 minutes.** On first boot it connects to WiFi, installs its software,
    **reboots itself once**, then registers. Don't touch it.
-8. Check the **prod Speakers tab** (`https://remotereading.duckdns.org`) → a new
+8. Check the **prod Speakers tab** (`https://voice2baby.com`) → a new
    `PI-####` should appear **Online**, all by itself.
 
 **If it comes Online → the polished doctor image works end to end.** 🎉

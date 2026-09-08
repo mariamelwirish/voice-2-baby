@@ -1,0 +1,17 @@
+[Unit]
+Description=Voice2Baby speaker WiFi setup from wifi.txt
+# Runs on every boot (a fast no-op unless wifi.txt changed) so the deploy site
+# can switch networks by editing wifi.txt on the SD card — no reflash needed.
+# Needs NetworkManager to run nmcli, but NOT network-online (that would deadlock:
+# there is no network until this configures it). apply-wifi.sh self-guards.
+After=NetworkManager.service
+Wants=NetworkManager.service
+ConditionPathExists=/usr/local/sbin/nicu-apply-wifi.sh
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/nicu-apply-wifi.sh
+
+[Install]
+WantedBy=multi-user.target

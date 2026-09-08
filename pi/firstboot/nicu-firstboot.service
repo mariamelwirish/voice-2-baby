@@ -6,6 +6,10 @@ Description=NICU speaker first-boot setup (WiFi + installs software + provisions
 # connectivity itself.
 After=NetworkManager.service
 Wants=NetworkManager.service
+# NOTE: do NOT order this After=cloud-init.target — on current Raspberry Pi OS that
+# target may never be reached, which blocks this unit from ever running. Instead,
+# firstboot.sh itself waits for the primary user account to become valid (it is
+# cloud-init that creates it), which handles the race without the risk of blocking.
 # Only run while the bootstrap payload is still present; firstboot.sh removes
 # the payload + disables this unit once it has succeeded.
 ConditionPathExists=/opt/nicu/firstboot.sh

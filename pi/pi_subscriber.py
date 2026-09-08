@@ -12,6 +12,7 @@
 
 import json
 import signal
+import ssl
 import subprocess
 import sys
 import threading
@@ -37,7 +38,11 @@ try:
     from provisioning_config import IOT_ENDPOINT
 except ImportError:
     IOT_ENDPOINT = "ad6mtn56o2o34-ats.iot.us-east-1.amazonaws.com"
-IOT_PORT = 8883
+# Connect over 443 (not the MQTT-standard 8883): 443 is the HTTPS port, which
+# restrictive networks (university/hospital firewalls) leave open. AWS IoT accepts
+# MQTT on 443 via the ALPN protocol "x-amzn-mqtt-ca" (set on the TLS context in
+# main()). Change back to 8883 only if a network blocks 443 (rare).
+IOT_PORT = 443
 
 CERTS_DIR = Path.home() / "certs"
 CA_PATH = CERTS_DIR / "AmazonRootCA1.pem"
@@ -147,8 +152,13 @@ def _play_worker(client, payload):
     # WAV, so the full message plays. MP3/other uploads decode fine too, so this
     # is uniform for every format.
     try:
+        # -ar 48000 -ac 2: normalize to 48 kHz STEREO. Browser mic recordings are
+        # mono, and a mono stream makes some speakers/outputs cut out mid-playback;
+        # forcing stereo (mono is duplicated to both channels) fixes it and makes
+        # every recording — mic or uploaded — a uniform, speaker-friendly format.
         subprocess.run(
-            ["ffmpeg", "-y", "-loglevel", "error", "-i", DOWNLOAD_PATH, PLAY_PATH],
+            ["ffmpeg", "-y", "-loglevel", "error", "-i", DOWNLOAD_PATH,
+             "-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le", PLAY_PATH],
             check=True,
         )
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
@@ -260,11 +270,13 @@ def main():
     client.on_connect = on_connect
     client.on_message = on_message
 
-    client.tls_set(
-        ca_certs=str(CA_PATH),
-        certfile=str(CERT_PATH),
-        keyfile=str(KEY_PATH),
-    )
+    # Build the TLS context ourselves so we can set ALPN to "x-amzn-mqtt-ca",
+    # which is what lets AWS IoT accept MQTT over port 443 (see IOT_PORT above).
+    # (paho's plain tls_set() has no ALPN option, so we use tls_set_context.)
+    ssl_ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=str(CA_PATH))
+    ssl_ctx.load_cert_chain(certfile=str(CERT_PATH), keyfile=str(KEY_PATH))
+    ssl_ctx.set_alpn_protocols(["x-amzn-mqtt-ca"])
+    client.tls_set_context(ssl_ctx)
 
     # Last Will and Testament: AWS IoT Core will publish this automatically
     # on our behalf the moment it detects this connection dropped —

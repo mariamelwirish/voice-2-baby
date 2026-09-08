@@ -75,6 +75,11 @@ def connect():
         try:
             conn = mqtt_connection_builder.mtls_from_path(
                 endpoint=cfg.IOT_ENDPOINT,
+                # Connect over 443 (the HTTPS port) instead of the MQTT-standard
+                # 8883. Restrictive networks (university/hospital firewalls) block
+                # 8883 but always allow 443; AWS IoT accepts MQTT on 443 and the
+                # SDK negotiates it via ALPN ("x-amzn-mqtt-ca") automatically.
+                port=443,
                 cert_filepath=str(cfg.CLAIM_CERT),
                 pri_key_filepath=str(cfg.CLAIM_KEY),
                 ca_filepath=str(cfg.CA_PATH),
